@@ -1,12 +1,11 @@
 package de.medipolis.pdfparser.service;
 
-import de.medipolis.pdfparser.exception.PdfParseException;
 import de.medipolis.pdfparser.model.Dtos.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
+import java.util.Map;
+
 
 /**
  * ============================================================
@@ -117,27 +116,48 @@ import java.math.BigDecimal;
  *  → double hat Floating-Point Ungenauigkeiten (0.1 + 0.2 = 0.300...04).
  *    Bei Medikamenten-Dosierungen im Gesundheitswesen ist das
  *    lebensgefaehrlich. BigDecimal ist exakt.
+ *    @Service
+ * public class PdfParserService {
+ *
+ *     private static final Logger log = LoggerFactory.getLogger(PdfParserService.class);
+ *
+ *     public ParseErgebnisDto parsePdf(PdfParseRequestDto request, String correlationId) {
+ *         // TODO: Implementiere Schritt 1-5
+ *         throw new UnsupportedOperationException("AUFGABE 1: Implementiere parsePdf()!");
+ *     }
+ *
+ *     // package-private damit Tests sie direkt testen koennen
+ *     Map<String, String> extrahiereFelder(String pdfInhalt) {
+ *         // TODO: String parsen und in Map umwandeln
+ *         // Format: "KEY1:WERT1;KEY2:WERT2"
+ *         throw new UnsupportedOperationException("AUFGABE 1: Implementiere extrahiereFelder()!");
+ *     }
+ *
+ *     private void validiereFelder(Map<String, String> felder, String correlationId) {
+ *         // TODO: Alle 4 Felder pruefen
+ *         // PdfParseException bei fehlenden/ungueltigen Feldern
+ *         throw new UnsupportedOperationException("AUFGABE 1: Implementiere validiereFelder()!");
+ *     }
+ * }
  */
-@Service
-public class PdfParserService {
+
+public class PdfParserService { 
 
     private static final Logger log = LoggerFactory.getLogger(PdfParserService.class);
 
     public ParseErgebnisDto parsePdf(PdfParseRequestDto request, String correlationId) {
         // TODO: Implementiere Schritt 1-5
         throw new UnsupportedOperationException("AUFGABE 1: Implementiere parsePdf()!");
-    }
-
-    // package-private damit Tests sie direkt testen koennen
-    java.util.Map<String, String> extrahiereFelder(String pdfInhalt) {
+     }
+     // package-private damit Tests sie direkt testen koennen
+    Map<String, String> extrahiereFelder(String pdfInhalt) {
         // TODO: String parsen und in Map umwandeln
         // Format: "KEY1:WERT1;KEY2:WERT2"
         throw new UnsupportedOperationException("AUFGABE 1: Implementiere extrahiereFelder()!");
     }
-
-    private void validiereFelder(java.util.Map<String, String> felder, String correlationId) {
+    private void validiereFelder(Map<String, String> felder, String correlationId) {
         // TODO: Alle 4 Felder pruefen
         // PdfParseException bei fehlenden/ungueltigen Feldern
         throw new UnsupportedOperationException("AUFGABE 1: Implementiere validiereFelder()!");
-    }
-}
+     }
+  }
