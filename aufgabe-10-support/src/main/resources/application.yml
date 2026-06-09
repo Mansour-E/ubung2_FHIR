@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: medipolis-support-dashboard
+
+server:
+  port: 8088
+
+# Actuator fuer Health-Check (wie in Produktion)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    de.medipolis: DEBUG
+  # Structured Logging Pattern — enthaelt correlationId aus MDC
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [correlationId=%X{correlationId}] %logger{36} - %msg%n"

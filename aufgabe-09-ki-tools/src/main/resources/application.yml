@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: ki-arztbrief-analyse
+  threads:
+    virtual:
+      enabled: true   # Java 21 Virtual Threads
+
+server:
+  port: 8087
+
+# KI-API Konfiguration (wird durch Umgebungsvariable ueberschrieben)
+ki:
+  api:
+    url: ${KI_API_URL:http://localhost:8090}
+    key: ${KI_API_KEY:test-key-niemals-hardcoden}
+    timeout-ms: 10000
+    model: gpt-4o
+
+logging:
+  level:
+    de.medipolis: DEBUG

@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: aufgabe-06-codereview
+  datasource:
+    url: jdbc:postgresql://localhost:5432/medipolis_review
+    username: postgres
+    password: 9157
+  jpa:
+    hibernate:
+      ddl-auto: update
+server:
+  port: 8085
+logging:
+  level:
+    de.medipolis: DEBUG

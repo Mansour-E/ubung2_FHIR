@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: aufgabe-07-abstimmung
+
+server:
+  port: 8086
+
+# Swagger UI Konfiguration
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /api-docs
+
+logging:
+  level:
+    de.medipolis: DEBUG
