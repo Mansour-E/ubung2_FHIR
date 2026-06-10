@@ -1,13 +1,10 @@
 package de.medipolis.pdfparser.service;
 
-import de.medipolis.pdfparser.exception.PdfParseException;
-import de.medipolis.pdfparser.model.Dtos.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.*;
@@ -41,30 +38,26 @@ class PdfParserServiceTest {
         @Test
         @DisplayName("PASS: Gueltiger PDF-Inhalt wird korrekt in Map umgewandelt")
         void shouldParseValidPdfContent() {
-            // TODO: Test implementieren
-            // Gegeben: "PATIENT_ID:PAT-001;MEDIKAMENT:Carboplatin;DOSIERUNG:450.5;EINHEIT:mg"
-            // Erwarte: Map mit 4 Eintraegen
-            //   felder.get("PATIENT_ID") == "PAT-001"
-            //   felder.get("MEDIKAMENT")  == "Carboplatin"
-            //   felder.get("DOSIERUNG")   == "450.5"
-            //   felder.get("EINHEIT")     == "mg"
-            fail("AUFGABE 4: Implementiere diesen Test!");
+
+            String pdfInhalt = "PATIENT_ID:PAT-001;MEDIKAMENT:Carboplatin;DOSIERUNG:450.5;EINHEIT:mg";
+            Map<String, String> felder = service.extrahiereFelder(pdfInhalt);
+            assertThat(felder.get("PATIENT_ID")).isEqualTo("PAT-001");
+            assertThat(felder.get("MEDIKAMENT")).isEqualTo("Carboplatin");
+            assertThat(felder.get("DOSIERUNG")).isEqualTo("450.5");
+            assertThat(felder.get("EINHEIT")).isEqualTo("mg");
+
         }
 
         @Test
         @DisplayName("FAIL erwartet: Leerer PDF-Inhalt → IllegalArgumentException")
         void shouldThrowWhenPdfInhaltEmpty() {
-            // TODO: Test implementieren
-            // assertThatThrownBy(() -> service.extrahiereFelder(""))
-            //     .isInstanceOf(IllegalArgumentException.class)
-            fail("AUFGABE 4: Implementiere diesen Test!");
+            assertThatThrownBy(() -> service.extrahiereFelder("")).isInstanceOf(IllegalArgumentException.class);
         }
 
         @Test
         @DisplayName("FAIL erwartet: Null PDF-Inhalt → IllegalArgumentException")
         void shouldThrowWhenPdfInhaltNull() {
-            // TODO: Test implementieren
-            fail("AUFGABE 4: Implementiere diesen Test!");
+            assertThatThrownBy(() -> service.extrahiereFelder(null)).isInstanceOf(IllegalArgumentException.class);
         }
     }
 

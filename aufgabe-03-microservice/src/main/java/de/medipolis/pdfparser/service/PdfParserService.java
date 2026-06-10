@@ -1,9 +1,13 @@
 package de.medipolis.pdfparser.service;
 
-import de.medipolis.pdfparser.model.Dtos.*;
+import de.medipolis.pdfparser.model.Dtos.ParseErgebnisDto;
+import de.medipolis.pdfparser.model.Dtos.PdfParseRequestDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -146,14 +150,31 @@ public class PdfParserService {
     private static final Logger log = LoggerFactory.getLogger(PdfParserService.class);
 
     public ParseErgebnisDto parsePdf(PdfParseRequestDto request, String correlationId) {
-        // TODO: Implementiere Schritt 1-5
-        throw new UnsupportedOperationException("AUFGABE 1: Implementiere parsePdf()!");
+
+        validiereFelder(extrahiereFelder(request.pdfInhalt()), correlationId);
+
+
+        return null;
+
      }
      // package-private damit Tests sie direkt testen koennen
-    Map<String, String> extrahiereFelder(String pdfInhalt) {
-        // TODO: String parsen und in Map umwandeln
-        // Format: "KEY1:WERT1;KEY2:WERT2"
-        throw new UnsupportedOperationException("AUFGABE 1: Implementiere extrahiereFelder()!");
+     Map<String, String> extrahiereFelder(String pdfInhalt) {
+
+         if (pdfInhalt == null || pdfInhalt.trim().isEmpty()) {
+             throw new IllegalArgumentException("PDF-Inhalt ist leer");
+         }
+
+        Map<String, String> fields = new HashMap<>();
+
+        List<String>  pdfList = Arrays.asList(pdfInhalt.trim().split(";"));
+        for (String field : pdfList) {
+            String[] keyValue = field.split(":");
+            fields.put(keyValue[0].trim(), keyValue[1].trim());
+        }
+
+        return fields;
+
+
     }
     private void validiereFelder(Map<String, String> felder, String correlationId) {
         // TODO: Alle 4 Felder pruefen

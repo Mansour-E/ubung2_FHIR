@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: pdf-prescription-parser
+  # Virtual Threads aktivieren (Java 21)
+  # Das ist eine der wichtigsten Microservice-Optimierungen!
+  # Erlaubt tausende parallele Anfragen ohne Performance-Verlust.
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: 8083
+
+logging:
+  level:
+    de.medipolis: DEBUG
