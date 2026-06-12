@@ -1,10 +1,12 @@
 package de.medipolis.pdfparser.service;
 
+import de.medipolis.pdfparser.exception.PdfParseException;
 import de.medipolis.pdfparser.model.Dtos.ParseErgebnisDto;
 import de.medipolis.pdfparser.model.Dtos.PdfParseRequestDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -151,10 +153,28 @@ public class PdfParserService {
 
     public ParseErgebnisDto parsePdf(PdfParseRequestDto request, String correlationId) {
 
+        log.warn("PDF-Inhalt wird geparst:");
         validiereFelder(extrahiereFelder(request.pdfInhalt()), correlationId);
 
 
-        return null;
+        Map<String, String> extrahierte = extrahiereFelder(request.pdfInhalt());
+
+
+
+
+        ParseErgebnisDto result = new ParseErgebnisDto(
+                correlationId,
+                extrahierte.get("PATIENT_ID"),
+                extrahierte.get("MEDIKAMENT"),
+                new BigDecimal(extrahierte.get("DOSIERUNG")),
+                extrahierte.get("EINHEIT"),
+                "ERFOLGREICH"
+                );
+
+        log.info("pdf is parsed für correlationId: {}", correlationId);
+
+
+        return result;
 
      }
      // package-private damit Tests sie direkt testen koennen
@@ -164,21 +184,48 @@ public class PdfParserService {
              throw new IllegalArgumentException("PDF-Inhalt ist leer");
          }
 
+
         Map<String, String> fields = new HashMap<>();
 
         List<String>  pdfList = Arrays.asList(pdfInhalt.trim().split(";"));
         for (String field : pdfList) {
             String[] keyValue = field.split(":");
-            fields.put(keyValue[0].trim(), keyValue[1].trim());
+            if (keyValue.length == 2) {
+                fields.put(keyValue[0].trim(), keyValue[1].trim());
+            }
+
         }
 
+        log.info("pdfInhalt is extracted");
         return fields;
 
 
     }
     private void validiereFelder(Map<String, String> felder, String correlationId) {
-        // TODO: Alle 4 Felder pruefen
-        // PdfParseException bei fehlenden/ungueltigen Feldern
-        throw new UnsupportedOperationException("AUFGABE 1: Implementiere validiereFelder()!");
-     }
+        if (felder.get("PATIENT_ID") == null || felder.get("PATIENT_ID").trim().isEmpty()) {
+            throw new PdfParseException("PATIENT_ID fehlt im PDF", correlationId);
+        }
+        if (felder.get("MEDIKAMENT") == null || felder.get("MEDIKAMENT").trim().isEmpty()) {
+            throw new PdfParseException("MEDIKAMENT fehlt im PDF", correlationId);
+        }
+        if (felder.get("DOSIERUNG") == null || felder.get("DOSIERUNG").trim().isEmpty()) {
+            throw new PdfParseException("DOSIERUNG fehlt im PDF", correlationId);
+        }
+        if (felder.get("EINHEIT") == null || felder.get("EINHEIT").trim().isEmpty()) {
+            throw new PdfParseException("EINHEIT fehlt im PDF", correlationId);
+        }
+
+        try{
+            BigDecimal dosierung = new BigDecimal(felder.get("DOSIERUNG"));
+            if (dosierung.compareTo(BigDecimal.ZERO) == 0) {
+                throw new PdfParseException("DOSIERUNG ungueltig im PDF", correlationId);
+            }
+        }catch (NumberFormatException e){
+            throw new PdfParseException("DOSIERUNG ungueltig im PDF", correlationId);
+        }
+
+        log.info("pdfInhalt is validated");
+
+
+    }
   }
