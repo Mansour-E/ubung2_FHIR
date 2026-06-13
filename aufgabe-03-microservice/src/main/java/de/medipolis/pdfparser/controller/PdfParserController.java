@@ -1,13 +1,16 @@
 package de.medipolis.pdfparser.controller;
 
-import de.medipolis.pdfparser.model.Dtos.*;
+import de.medipolis.pdfparser.model.Dtos.PdfParseRequestDto;
 import de.medipolis.pdfparser.service.PdfParserService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
@@ -103,14 +106,28 @@ public class PdfParserController {
         this.pdfParserService = pdfParserService;
     }
 
+
     @PostMapping("/parse")
     public ResponseEntity<?> parsePdf(@Valid @RequestBody PdfParseRequestDto request) {
+
+        String correlationId = UUID.randomUUID().toString();
+        MDC.put("correlationId", correlationId);
+        try{
+            log.info("PDF-Parsing Request, correlationId: {}, quellSystem: {}", correlationId, request.quellSystem());
+
+            var result = pdfParserService.parsePdf(request, correlationId);
+            return ResponseEntity.ok(result);
+        }finally {
+            MDC.clear();
+        }
+
+
         // TODO: Implementiere den Controller
         // Schritt 1: correlationId generieren
         // Schritt 2: MDC mit try-finally
         // Schritt 3: log.info (nur quellSystem, keine Patientendaten!)
         // Schritt 4: pdfParserService.parsePdf() aufrufen
         // Schritt 5: 200 OK zurueckgeben
-        throw new UnsupportedOperationException("AUFGABE 2: Implementiere parsePdf()!");
+
     }
 }
