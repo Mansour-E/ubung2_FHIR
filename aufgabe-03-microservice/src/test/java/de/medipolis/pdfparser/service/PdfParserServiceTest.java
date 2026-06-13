@@ -1,11 +1,15 @@
 package de.medipolis.pdfparser.service;
 
+import de.medipolis.pdfparser.exception.PdfParseException;
+import de.medipolis.pdfparser.model.Dtos;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -68,6 +72,16 @@ class PdfParserServiceTest {
         @Test
         @DisplayName("PASS: Gueltiges PDF wird erfolgreich verarbeitet")
         void shouldParseValidPdfSuccessfully() {
+
+            Dtos.PdfParseRequestDto request = new Dtos.PdfParseRequestDto("PATIENT_ID:PAT-001;MEDIKAMENT:Carboplatin;DOSIERUNG:450.5;EINHEIT:mg",
+                    "klkrankenhaus");
+            Dtos.ParseErgebnisDto parsed = service.parsePdf(request, UUID.randomUUID().toString());
+            assertThat(parsed.patientId()).isEqualTo("PAT-001");
+            assertThat(parsed.medikament()).isEqualTo("Carboplatin");
+            assertThat(parsed.dosierungMg()).isEqualTo(new BigDecimal("450.5"));
+            assertThat(parsed.einheit()).isEqualTo("mg");
+            assertThat(parsed.status()).isEqualTo("ERFOLGREICH");
+            assertThat(parsed.correlationId()).isNotNull();
             // TODO: Test implementieren
             // Gegeben: gueltiger Request mit allen Feldern
             // Erwarte:
@@ -77,16 +91,17 @@ class PdfParserServiceTest {
             //   result.einheit()     == "mg"
             //   result.status()      == "ERFOLGREICH"
             //   result.correlationId() ist nicht null
-            fail("AUFGABE 4: Implementiere diesen Test!");
+            //fail("AUFGABE 4: Implementiere diesen Test!");
         }
 
         @Test
         @DisplayName("FAIL erwartet: PATIENT_ID fehlt → PdfParseException")
         void shouldThrowWhenPatientIdMissing() {
-            // TODO: Test implementieren
-            // Gegeben: PDF ohne PATIENT_ID Feld
-            // z.B. "MEDIKAMENT:Carboplatin;DOSIERUNG:450.5;EINHEIT:mg"
-            fail("AUFGABE 4: Implementiere diesen Test!");
+            Dtos.PdfParseRequestDto request = new Dtos.PdfParseRequestDto("PATIENT_ID:;MEDIKAMENT:Carboplatin;DOSIERUNG:450.5;EINHEIT:mg",
+                    "klkrankenhaus");
+            String correlationId = UUID.randomUUID().toString();
+
+            assertThatThrownBy(() -> service.parsePdf(request, correlationId)).isInstanceOf(PdfParseException.class);
         }
 
         @Test
