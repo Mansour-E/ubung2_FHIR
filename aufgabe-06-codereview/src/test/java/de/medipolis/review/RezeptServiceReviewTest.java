@@ -41,30 +41,26 @@ class RezeptServiceReviewTest {
         @Test
         @DisplayName("PASS: 600mg → DRINGEND")
         void shouldReturnDringendForHighDose() {
-            // TODO: Test schreiben
-            fail("Implementiere nach dem Fix von Problem #4!");
+
+            assertThat(service.bestimmeDringlichkeit(BigDecimal.valueOf(600))).isEqualTo("DRINGEND");
         }
 
         @Test
         @DisplayName("PASS: 250mg → NORMAL")
         void shouldReturnNormalForLowDose() {
-            // TODO: Test schreiben
-            fail("Implementiere nach dem Fix von Problem #4!");
+            assertThat(service.bestimmeDringlichkeit(BigDecimal.valueOf(250))).isEqualTo("NORMAL");
         }
 
         @Test
         @DisplayName("GRENZWERT: Genau 500mg → DRINGEND (nicht NORMAL!)")
         void shouldReturnDringendForExactThreshold() {
-            // TODO: Test schreiben
-            // Das ist der klassische Grenzwert-Test!
-            fail("Implementiere nach dem Fix von Problem #4!");
+            assertThat(service.bestimmeDringlichkeit(BigDecimal.valueOf(500))).isEqualTo("DRINGEND");
         }
 
         @Test
         @DisplayName("GRENZWERT: 499.99mg → NORMAL")
         void shouldReturnNormalJustBelowThreshold() {
-            // TODO: Test schreiben
-            fail("Implementiere nach dem Fix von Problem #4!");
+            assertThat(service.bestimmeDringlichkeit(BigDecimal.valueOf(499.99))).isEqualTo("NORMAL");
         }
     }
 
@@ -75,10 +71,7 @@ class RezeptServiceReviewTest {
         @Test
         @DisplayName("PASS: Nach Umbenennung — Methode testet ob Dosierung kritisch ist")
         void shouldReturnTrueForCriticalDose() {
-            // TODO: Test schreiben
-            // Nach deinem Fix sollte die Methode einen klaren Namen haben
-            // z.B. istKritischeDosierung()
-            fail("Implementiere nach dem Fix von Problem #8!");
+            assertThat(service.istUeberdosis(BigDecimal.valueOf(10000))).isTrue();
         }
     }
 }

@@ -1,7 +1,10 @@
 package de.medipolis.review.controller;
 
+import de.medipolis.review.dto.RezeptRequestDto;
+import de.medipolis.review.dto.RezeptResponseDto;
 import de.medipolis.review.model.Rezept;
 import de.medipolis.review.service.RezeptService;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -27,30 +30,41 @@ public class RezeptController {
     }
 
     @PostMapping
-    public ResponseEntity<?> erstelleRezept(
-            @RequestParam String patientId,
-            @RequestParam String patientName,
-            @RequestParam String medikament,
-            @RequestParam BigDecimal dosierungMg,
-            @RequestParam String arztName) {
+    public ResponseEntity<?> erstelleRezept(@Valid @RequestBody RezeptRequestDto request) {
+
 
         // ❌ REVIEW-PROBLEM #9 [blocking] — Kein @Valid, keine Eingabevalidierung
         // Was passiert wenn jemand einen leeren String oder null schickt?
         // Wie sollte das korrekt geloest werden?
 
         Rezept rezept = rezeptService.speichereRezept(
-                patientId, patientName, medikament, dosierungMg, arztName);
+                request.patientId(),
+                        request.patientName(),
+                        request.medikament(),
+                        request.dosierung(),
+                        request.arztName()
+                );
 
         return ResponseEntity.ok(rezept);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> holeRezept(@PathVariable Long id) {
-        Rezept rezept = rezeptService.holeRezept(id);
+
 
         // ❌ REVIEW-PROBLEM #10 [blocking] — Kein 404 wenn nicht gefunden
         // Was passiert wenn rezept null ist?
         // Was gibt dieser Code dann zurueck?
-        return ResponseEntity.ok(rezept);
+        try{
+
+            Rezept rezept = rezeptService.holeRezept(id);
+
+            return ResponseEntity.ok(RezeptResponseDto.fromRezept(rezept));
+
+        }catch(Exception e){
+
+            return ResponseEntity.notFound().build();
+        }
+
     }
 }

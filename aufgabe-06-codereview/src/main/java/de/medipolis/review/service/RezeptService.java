@@ -2,6 +2,7 @@ package de.medipolis.review.service;
 
 import de.medipolis.review.model.Rezept;
 import de.medipolis.review.repository.RezeptRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -41,9 +42,11 @@ public class RezeptService {
 
     private final RezeptRepository repository;
 
+    private static final BigDecimal MAX_DOSIERUNG = BigDecimal.valueOf(1000);
+
     // ❌ REVIEW-PROBLEM #1 [blocking] — SECURITY
     // Was ist hier falsch? Wo gehoert das hin?
-    private static final String DB_PASSWORD = "SuperGeheim123!";
+    // password soll nicht in code sein sondern in Enviroment variable
 
     public RezeptService(RezeptRepository repository) {
         this.repository = repository;
@@ -56,38 +59,49 @@ public class RezeptService {
         String correlationId = UUID.randomUUID().toString();
         MDC.put("correlationId", correlationId);
 
-        // ❌ REVIEW-PROBLEM #2 [blocking] — DSGVO
-        // Was ist mit dieser Log-Zeile falsch?
-        log.info("Neues Rezept: Patient={}, Name={}, Medikament={}, Arzt={}",
-                patientId, patientName, medikament, arztName);
+        try{
+            // ❌ REVIEW-PROBLEM #2 [blocking] — DSGVO
+            // Was ist mit dieser Log-Zeile falsch?
+            // patienten information darf nicht geloggt werden
+            log.info("Neues Rezept: correlationId={}", correlationId);
 
-        // ❌ REVIEW-PROBLEM #3 [blocking] — MDC nicht gecleart
-        // Was fehlt hier? Was passiert ohne den Fix?
+            // ❌ REVIEW-PROBLEM #3 [blocking] — MDC nicht gecleart
+            // Was fehlt hier? Was passiert ohne den Fix?
+            // MDC clean ist nicht aufgerufen
 
-        // Validierung
-        if (dosierungMg == null || dosierungMg.doubleValue() <= 0) {
-            throw new IllegalArgumentException("Dosierung ungueltig");
+            // Validierung
+            if (dosierungMg == null || dosierungMg.doubleValue() <= 0) {
+                throw new IllegalArgumentException("Dosierung ungueltig");
+            }
+
+            Rezept rezept = Rezept.builder()
+                    .patientId(patientId)
+                    .patientName(patientName)
+                    .medikament(medikament)
+                    .dosierungMg(dosierungMg)
+                    .arztName(arztName)
+                    .status("NEU")
+                    .erstelltAm(LocalDateTime.now())
+                    .build();
+
+            return repository.save(rezept);
+
+        }finally{
+            MDC.clear();
         }
 
-        Rezept rezept = Rezept.builder()
-                .patientId(patientId)
-                .patientName(patientName)
-                .medikament(medikament)
-                .dosierungMg(dosierungMg)
-                .arztName(arztName)
-                .status("NEU")
-                .erstelltAm(LocalDateTime.now())
-                .build();
 
-        return repository.save(rezept);
+
+
     }
 
     // ❌ REVIEW-PROBLEM #4 [blocking] — Falsche Vergleichslogik
     // Diese Methode soll alle Rezepte mit Dosierung >= 500mg als DRINGEND markieren.
     // Was ist hier falsch? (Tipp: du kennst diesen Bug schon aus Projekt 1!)
+    // wegen compareTo sollte grosser als 0 raus kommen
     public String bestimmeDringlichkeit(BigDecimal dosierungMg) {
         BigDecimal schwellenwert = new BigDecimal("500");
-        if (dosierungMg.compareTo(schwellenwert) == 1) {
+        if (dosierungMg.compareTo(schwellenwert) >= 0) {
             return "DRINGEND";
         }
         return "NORMAL";
@@ -98,13 +112,13 @@ public class RezeptService {
     // Finde das Problem und erklaere den Fix.
     public List<String> alleRezepteNachAerzten(List<String> arztNamen) {
         List<String> ergebnis = new ArrayList<>();
-        for (String arzt : arztNamen) {
+
             // Pro Arzt eine separate DB-Abfrage — das ist das N+1 Problem!
-            List<Rezept> rezepte = repository.findByArzt(arzt);
-            for (Rezept r : rezepte) {
-                ergebnis.add(arzt + ": " + r.getMedikament());
+            List<Rezept> alleRezepte = repository.findByArztIn(arztNamen);
+            for (Rezept r : alleRezepte) {
+                ergebnis.add(r.getArztName() + ": " + r.getMedikament());
             }
-        }
+
         return ergebnis;
     }
 
@@ -115,7 +129,7 @@ public class RezeptService {
             return repository.findById(id).orElse(null);
         } catch (Exception e) {
             // Fehler wird komplett ignoriert!
-            return null;
+             throw new EntityNotFoundException(e.getMessage());
         }
     }
 
@@ -131,7 +145,8 @@ public class RezeptService {
 
     // ❌ REVIEW-PROBLEM #8 [nitpick] — Schlechte Methoden-Benennung + Magic Number
     // Was sind hier zwei kleine aber wichtige Probleme?
-    public boolean check(BigDecimal d) {
-        return d.compareTo(new BigDecimal("1000")) > 0;
+    // Atwort : method ist falsch  das schmeisst true raus wenn d großer als 1000 ist nicht gleich oder kleiner
+    public boolean istUeberdosis(BigDecimal dosierungMg) {
+        return dosierungMg.compareTo(MAX_DOSIERUNG) > 0;
     }
 }

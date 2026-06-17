@@ -1,0 +1,19 @@
+server:
+  port: 8089
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/medipolis_fhir
+    username: postgres
+    password: ${DB_PASSWORD:9157}
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  flyway:
+    enabled: false
+
+logging:
+  level:
+    de.medipolis.fhir: DEBUG
+    ca.uhn.fhir: WARN

@@ -18,4 +18,7 @@ public interface RezeptRepository extends JpaRepository<Rezept, Long> {
 
     @Query("SELECT r FROM Rezept r WHERE r.arztName = ?1")
     List<Rezept> findByArzt(String arztName);
+
+    @Query("SELECT r FROM Rezept r WHERE r.arztName IN ?1")
+    List<Rezept> findByArztIn(List<String> arztNamen);
 }
