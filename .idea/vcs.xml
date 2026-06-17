@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/aufgabe-01-schnittstellen" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/medipolis-implement" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/medipolis-interview" vcs="Git" />
+  </component>
+</project>

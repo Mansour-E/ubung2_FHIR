@@ -57,10 +57,15 @@ public class MedikamentService {
         Medikament gespeichert = repository.save(medikament);
         log.info("Medikament gespeichert mit id={}", gespeichert.getId());
 
+        String krankenkasseStatus;
         // Krankenkasse fragen
-        String krankenkasseStatus = krankenkasseClient.pruefeGenehmigung(
-                request.name(), request.patientId()
-        );
+        try {
+             krankenkasseStatus = krankenkasseClient.pruefeGenehmigung(
+                    request.name(), request.patientId()
+            );
+        }catch (Exception e) {
+            krankenkasseStatus = "UNBEKANNT";
+        }
 
         return new MedikamentResponseDto(
                 gespeichert.getId(),

@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Carboplatin",
+    "dosierungMg": 450.00,
+    "einheit": "mg",
+    "patientId": "PAT-001"
+  },
+  {
+    "name": "Methotrexat",
+    "dosierungMg": 200.00,
+    "einheit": "mg",
+    "patientId": "PAT-002"
+  }
+]

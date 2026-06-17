@@ -1,11 +1,11 @@
 package de.medipolis.qualitaet.unit;
 
 import de.medipolis.qualitaet.client.KrankenkasseClient;
-import de.medipolis.qualitaet.model.Dtos.*;
+import de.medipolis.qualitaet.model.Dtos.MedikamentRequestDto;
+import de.medipolis.qualitaet.model.Dtos.MedikamentResponseDto;
 import de.medipolis.qualitaet.model.Medikament;
 import de.medipolis.qualitaet.repository.MedikamentRepository;
 import de.medipolis.qualitaet.service.MedikamentService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
@@ -64,7 +64,30 @@ class MedikamentServiceUnitTest {
 
         @Test
         @DisplayName("PASS: Gueltiges Medikament wird gespeichert und Krankenkasse GENEHMIGT")
-        void shouldSaveAndReturnGenehmigt() {
+        void shouldSaveAndReturnGenehmigt(){
+
+            MedikamentRequestDto request = new MedikamentRequestDto("Carboplatin" , BigDecimal.valueOf(450), "mg", "PAT-001");
+
+            Medikament gespeichert = Medikament.builder()
+                    .id(1L)
+                    .name("Carboplatin")
+                    .dosierungMg(new BigDecimal("450.00"))
+                    .einheit("mg")
+                    .patientId("PAT-001")
+                    .status(Medikament.Status.NEU)
+                    .build();
+
+            when(repository.save(any())).thenReturn(gespeichert);
+            when(krankenkasseClient.pruefeGenehmigung(any(),any())).thenReturn("GENEHMIGT");
+
+            MedikamentResponseDto result = medikamentService.speichereUndPruefe(request);
+
+            assertThat(result.name()).isEqualTo("Carboplatin");
+            assertThat(result.krankenkasseStatus()).isEqualTo("GENEHMIGT");
+            assertThat(result.id()).isEqualTo(1L);
+
+            verify(repository , times(1)).save(any());
+            verify(krankenkasseClient,times(1)).pruefeGenehmigung(any(),any());
             // TODO: Test implementieren
             //
             // SCHRITT 1 — Arrange (Vorbereitung):
@@ -91,44 +114,109 @@ class MedikamentServiceUnitTest {
             // SCHRITT 4 — Verify (War der Mock wirklich aufgerufen?):
             //   verify(repository, times(1)).save(any());
             //   verify(krankenkasseClient, times(1)).pruefeGenehmigung(any(), any());
-            fail("AUFGABE 1A: Implementiere diesen Test!");
+
         }
 
         @Test
         @DisplayName("PASS: Krankenkasse gibt ABGELEHNT zurueck")
         void shouldReturnAbgelehntWhenKrankenkasseAbgelehnt() {
+
+            MedikamentRequestDto request = new MedikamentRequestDto("Carboplatin" , BigDecimal.valueOf(450), "mg", "PAT-001");
+
+            Medikament gespeichert = Medikament.builder()
+                    .id(1L)
+                    .name("Carboplatin")
+                    .dosierungMg(new BigDecimal("450.00"))
+                    .einheit("mg")
+                    .patientId("PAT-001")
+                    .status(Medikament.Status.NEU)
+                    .build();
+
+            when(repository.save(any())).thenReturn(gespeichert);
+            when(krankenkasseClient.pruefeGenehmigung(any(),any())).thenReturn("ABGELEHNT");
+
+
+            MedikamentResponseDto result = medikamentService.speichereUndPruefe(request);
+
+            assertThat(result.krankenkasseStatus()).isEqualTo("ABGELEHNT");
+
             // TODO: Test implementieren
             // Gleicher Aufbau wie oben aber:
             //   when(krankenkasseClient.pruefeGenehmigung(any(), any())).thenReturn("ABGELEHNT");
             // Erwarte: result.krankenkasseStatus() == "ABGELEHNT"
-            fail("AUFGABE 1A: Implementiere diesen Test!");
+
         }
 
         @Test
         @DisplayName("PASS: Krankenkasse nicht erreichbar → UNBEKANNT")
         void shouldReturnUnbekanntWhenKrankenkasseUnavailable() {
+
+
+            MedikamentRequestDto request = new MedikamentRequestDto("Carboplatin", BigDecimal.valueOf(450), "mg", "PAT-001");
+
+            Medikament gespeichert = Medikament.builder()
+                    .id(1L)
+                    .name("Carboplatin")
+                    .dosierungMg(new BigDecimal("450.00"))
+                    .einheit("mg")
+                    .patientId("PAT-001")
+                    .status(Medikament.Status.NEU)
+                    .build();
+
+            when(repository.save(any())).thenReturn(gespeichert);
+            when(krankenkasseClient.pruefeGenehmigung(any(), any())).thenThrow(new RuntimeException("nicht erreichbar"));
+
+            MedikamentResponseDto result = medikamentService.speichereUndPruefe(request);
+
+            assertThat(result.krankenkasseStatus()).isEqualTo("UNBEKANNT");
             // TODO: Test implementieren
             // when(krankenkasseClient.pruefeGenehmigung(any(), any())).thenReturn("UNBEKANNT");
-            fail("AUFGABE 1A: Implementiere diesen Test!");
+
         }
 
         @Test
         @DisplayName("FAIL erwartet: Dosierung = 0 → IllegalArgumentException")
         void shouldThrowWhenDosierungZero() {
+
+            MedikamentRequestDto request = new MedikamentRequestDto("Carboplatin", BigDecimal.valueOf(0), "mg", "PAT-001");
+
+
+
+
+            assertThatThrownBy(() -> medikamentService.speichereUndPruefe(request)).isInstanceOf(IllegalArgumentException.class);
+
+            verify(repository, never()).save(any());
+
             // TODO: Test implementieren
             // Erstelle Request mit dosierungMg = 0
             // assertThatThrownBy(...).isInstanceOf(IllegalArgumentException.class)
             // WICHTIG: Verify dass repository.save() NIE aufgerufen wurde!
             //   verify(repository, never()).save(any());
-            fail("AUFGABE 1A: Implementiere diesen Test!");
+
         }
 
         @Test
         @DisplayName("PASS: repository.save() wird genau einmal aufgerufen")
         void shouldCallRepositorySaveExactlyOnce() {
+
+            Medikament gespeichert = Medikament.builder()
+                    .id(1L)
+                    .name("Carboplatin")
+                    .dosierungMg(new BigDecimal("450.00"))
+                    .einheit("mg")
+                    .patientId("PAT-001")
+                    .status(Medikament.Status.NEU)
+                    .build();
+
+            when(repository.save(any())).thenReturn(gespeichert);
+
+            MedikamentRequestDto request = new MedikamentRequestDto("Carboplatin", BigDecimal.valueOf(450), "mg", "PAT-001");
+            medikamentService.speichereUndPruefe(request);
+
+            verify(repository, times(1)).save(any());
             // TODO: Test implementieren
             // Pruefe mit verify(repository, times(1)).save(any())
-            fail("AUFGABE 1A: Implementiere diesen Test!");
+
         }
     }
 
@@ -143,32 +231,36 @@ class MedikamentServiceUnitTest {
         @Test
         @DisplayName("PASS: Normale Berechnung — 300mg bei 60kg")
         void shouldCalculateCorrectDose() {
+
+            assertThat(medikamentService.berechneGewichtsDosis(new BigDecimal("300.00"), BigDecimal.valueOf(60))).isEqualTo(BigDecimal.valueOf(300).setScale(2, java.math.RoundingMode.HALF_UP));
+
             // TODO: Test implementieren
             // BigDecimal result = medikamentService.berechneGewichtsDosis(
             //     new BigDecimal("300"), new BigDecimal("60"));
             // assertThat(result).isEqualByComparingTo(new BigDecimal("300.00"));
-            fail("AUFGABE 1B: Implementiere diesen Test!");
+
         }
 
         @Test
         @DisplayName("FAIL erwartet: Basisdosis = 0 → IllegalArgumentException")
         void shouldThrowWhenBasisdosisZero() {
+
+            assertThatThrownBy(() -> medikamentService.berechneGewichtsDosis(BigDecimal.ZERO , BigDecimal.valueOf(60))).isInstanceOf(IllegalArgumentException.class);
             // TODO: Test implementieren
-            fail("AUFGABE 1B: Implementiere diesen Test!");
         }
 
         @Test
         @DisplayName("FAIL erwartet: Gewicht negativ → IllegalArgumentException")
         void shouldThrowWhenGewichtNegative() {
             // TODO: Test implementieren
-            fail("AUFGABE 1B: Implementiere diesen Test!");
+            assertThatThrownBy(() -> medikamentService.berechneGewichtsDosis(BigDecimal.valueOf(300), BigDecimal.valueOf(-20))).isInstanceOf(IllegalArgumentException.class);
         }
 
         @Test
         @DisplayName("FAIL erwartet: Basisdosis null → IllegalArgumentException")
         void shouldThrowWhenBasisdosisNull() {
             // TODO: Test implementieren
-            fail("AUFGABE 1B: Implementiere diesen Test!");
+            assertThatThrownBy(() -> medikamentService.berechneGewichtsDosis(null, BigDecimal.valueOf(60))).isInstanceOf(IllegalArgumentException.class);
         }
     }
 }

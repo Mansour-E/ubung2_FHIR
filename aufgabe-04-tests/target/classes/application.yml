@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: aufgabe-04-tests
+  datasource:
+    url: jdbc:postgresql://localhost:5432/medipolis_qualitaet
+    username: postgres
+    password: ${DB_PASSWORD:9157}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+server:
+  port: 8084
+logging:
+  level:
+    de.medipolis: DEBUG
