@@ -7,10 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.time.LocalTime;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -116,25 +114,78 @@ public class BestellungsService {
     // In-Memory Speicher — kein DB noetig fuer diese Aufgabe
     private final Map<String, BestellungStatusDto> bestellungen = new ConcurrentHashMap<>();
 
-    public BestellungResponseDto erstelleBestellung(BestellungRequestDto request,
-                                                     String apothekenId) {
-        // TODO: Implementiere Schritt 1-4
-        throw new UnsupportedOperationException("AUFGABE 1: Implementiere erstelleBestellung()!");
+    public BestellungResponseDto erstelleBestellung(BestellungRequestDto request, String apothekenId){
+
+        String bestellungId = String.format("BST-%d-%05d",
+                LocalDateTime.now().getYear(), new Random().nextInt(99999));
+
+        int lieferZeit = berechneLiferzeit(request.prioritaet());
+
+        BestellungStatusDto status = new BestellungStatusDto(
+                bestellungId,
+                apothekenId,
+                request.medikament(),
+                request.menge(),
+                request.einheit(),
+                "EINGEGANGEN",
+                LocalDateTime.now(),
+                LocalDateTime.now().plusHours(lieferZeit),
+                "Ihre Bestellung wurde erfolgreich aufgenommen. Voraussichtliche Lieferung in " + lieferZeit + " Stunden."
+        );
+
+        bestellungen.put(bestellungId, status);
+
+        log.info("Neue Bestellung erstellt: bestellId={}, apothekenId={}", bestellungId, apothekenId);
+
+        return new BestellungResponseDto(
+                bestellungId,
+                "EINGEGANGEN",
+                lieferZeit,
+                "Ihre Bestellung wurde erfolgreich aufgenommen."
+        );
+
+
     }
 
-    public BestellungStatusDto holeBestellungStatus(String bestellId) {
-        // TODO: In Map nachschauen, Exception wenn nicht gefunden
-        throw new UnsupportedOperationException("AUFGABE 1: Implementiere holeBestellungStatus()!");
+    public BestellungStatusDto holeBestellungStatus(String bestellungId){
+
+        BestellungStatusDto status = bestellungen.get(bestellungId);
+
+        if (status == null) {
+            throw new BestellungNichtGefundenException( "Wir konnten keine Bestellung mit dieser ID finden. Bitte pruefen Sie die Bestell-ID.");
+        }
+
+        return status;
     }
 
-    public BestellungListeDto holeAlleBestellungen(String apothekenId) {
-        // TODO: Nach apothekenId filtern und Liste zurueckgeben
-        throw new UnsupportedOperationException("AUFGABE 1: Implementiere holeAlleBestellungen()!");
+    public BestellungListeDto holeAlleBestellungen(String apothekenId){
+
+
+            List<BestellungStatusDto> status = bestellungen.values().stream().filter(b -> b.apothekenId().equals(apothekenId)).toList();
+            return new BestellungListeDto(apothekenId , status , status.size());
+
+
     }
 
-    public BestellungResponseDto storniereBestellung(String bestellId) {
-        // TODO: Status pruefen und auf STORNIERT setzen
-        throw new UnsupportedOperationException("AUFGABE 1: Implementiere storniereBestellung()!");
+    public BestellungResponseDto storniereBestellung(String bestellungId){
+
+        BestellungStatusDto bestellung =  bestellungen.get(bestellungId);
+
+        if (bestellung == null) {
+            throw new BestellungNichtGefundenException("Wir konnten keine Bestellung mit dieser ID finden. Bitte pruefen Sie die Bestell-ID.");
+        }
+
+        if (!bestellung.status().equals("EINGEGANGEN")) {
+            throw new IllegalStateException("Diese Bestellung kann nicht mehr storniert werden, da sie bereits in Bearbeitung ist.");
+        }
+        BestellungStatusDto storniert = new BestellungStatusDto(
+                bestellung.bestellId(), bestellung.apothekenId(), bestellung.medikament(),
+                bestellung.menge(), bestellung.einheit(), "STORNIERT",
+                bestellung.erstelltAm(), bestellung.voraussichtlicheLieferung(),
+                "Ihre Bestellung wurde erfolgreich storniert."
+        );
+        bestellungen.put(bestellungId, storniert);
+        return new BestellungResponseDto(bestellungId, "STORNIERT", 0, "Ihre Bestellung wurde storniert.");
     }
 
     // Hilfsmethode — bereits implementiert
