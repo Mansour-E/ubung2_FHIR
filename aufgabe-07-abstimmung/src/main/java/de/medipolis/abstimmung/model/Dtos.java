@@ -26,24 +26,24 @@ public class Dtos {
     public record BestellungRequestDto(
 
             @NotBlank(message = "Apotheken-ID ist Pflichtfeld")
-            // TODO: @Schema(description = "...", example = "APO-JENA-001") hinzufuegen
+            @Schema(description = "Apotheken Id von ihnen wird benötigt " , example = "APO-JENA-001")
             String apothekenId,
 
             @NotBlank(message = "Medikament ist Pflichtfeld")
-            // TODO: @Schema hinzufuegen
+            @Schema(description = "medikamenten Name mit einem gültigen Zeichen " , example = "Ibuprofen")
             String medikament,
 
             @NotNull(message = "Menge ist Pflichtfeld")
             @Positive(message = "Menge muss groesser als 0 sein")
-            // TODO: @Schema hinzufuegen
+            @Schema(description = "Bestellte Menge des Medikaments", example = "5")
             Integer menge,
 
             @NotBlank(message = "Einheit ist Pflichtfeld")
-            // TODO: @Schema(description = "...", example = "mg", allowableValues = {"mg", "ml", "Stueck"})
+            @Schema(description = "Einheit der Bestellung", example = "mg", allowableValues = {"mg", "ml", "Stueck"})
             String einheit,
 
             // Optionales Feld — Prioritaet der Bestellung
-            // TODO: @Schema hinzufuegen
+            @Schema(description = "Priorität der Bestellung — beeinflusst die Lieferzeit" , example = "Normal")
             String prioritaet
     ) {}
 
