@@ -1,5 +1,7 @@
 package de.medipolis.abstimmung.controller;
 
+import de.medipolis.abstimmung.exception.BestellungNichtGefundenException;
+import de.medipolis.abstimmung.model.Dtos;
 import de.medipolis.abstimmung.model.Dtos.*;
 import de.medipolis.abstimmung.service.BestellungsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,9 +13,11 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.util.UUID;
 
 /**
@@ -123,12 +127,27 @@ public class BestellungsController {
             @Parameter(description = "ID der Apotheke", example = "APO-JENA-001")
             @PathVariable String apothekenId,
             @Valid @RequestBody BestellungRequestDto request) {
+
+        UUID correlationID = UUID.randomUUID();
+
+
+        MDC.put("correlationID", correlationID.toString());
+
+        try{
+            log.info("Erstelle Bestellung fuer apothekenId={}", apothekenId);
+
+            BestellungResponseDto response = bestellungsService.erstelleBestellung(request,apothekenId);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+        }finally {
+            MDC.clear();
+        }
+
         // TODO: Implementiere Endpunkt 1
         // 1. correlationId + MDC (try-finally!)
         // 2. log.info (nur apothekenId, kein Medikament!)
         // 3. Service aufrufen
         // 4. 201 Created zurueckgeben
-        throw new UnsupportedOperationException("AUFGABE 2: Implementiere erstelleBestellung()!");
     }
 
     @GetMapping("/{apothekenId}/bestellungen/{bestellId}")
@@ -140,14 +159,25 @@ public class BestellungsController {
             @ApiResponse(responseCode = "200", description = "Status erfolgreich abgerufen"),
             @ApiResponse(responseCode = "404", description = "Bestellung nicht gefunden")
     })
+
+
     public ResponseEntity<?> holeBestellungStatus(
             @PathVariable String apothekenId,
-            @PathVariable String bestellId) {
+            @PathVariable String bestellId) throws AccessDeniedException {
+
+            BestellungStatusDto status = bestellungsService.holeBestellungStatus(bestellId);
+
+            if (!status.apothekenId().equals(apothekenId)) {
+                throw new AccessDeniedException("Sie haben keinen Zugriff auf diese Apotheke.");
+            }
+            return ResponseEntity.ok(status);
+
+
         // TODO: Implementiere Endpunkt 2
         // Service aufrufen, 200 OK zurueckgeben
         // BestellungNichtGefundenException → wird vom GlobalExceptionHandler abgefangen
-        throw new UnsupportedOperationException("AUFGABE 2: Implementiere holeBestellungStatus()!");
     }
+
 
     @GetMapping("/{apothekenId}/bestellungen")
     @Operation(
@@ -157,11 +187,17 @@ public class BestellungsController {
     )
     @ApiResponse(responseCode = "200", description = "Liste erfolgreich abgerufen")
     public ResponseEntity<?> holeAlleBestellungen(@PathVariable String apothekenId) {
+
+
+        BestellungListeDto statusList = bestellungsService.holeAlleBestellungen(apothekenId);
+
+        return ResponseEntity.ok(statusList);
         // TODO: Implementiere Endpunkt 3
         // Service aufrufen, 200 OK zurueckgeben
         // WICHTIG: Leere Liste → 200 OK, NICHT 404!
-        throw new UnsupportedOperationException("AUFGABE 2: Implementiere holeAlleBestellungen()!");
+
     }
+
 
     @DeleteMapping("/{apothekenId}/bestellungen/{bestellId}")
     @Operation(
@@ -176,8 +212,17 @@ public class BestellungsController {
     })
     public ResponseEntity<?> storniereBestellung(
             @PathVariable String apothekenId,
-            @PathVariable String bestellId) {
-        // TODO: Implementiere Endpunkt 4
-        throw new UnsupportedOperationException("AUFGABE 2: Implementiere storniereBestellung()!");
+            @PathVariable String bestellId) throws AccessDeniedException {
+
+        BestellungStatusDto status = bestellungsService.holeBestellungStatus(bestellId);
+
+        if (!status.apothekenId().equals(apothekenId)) {
+            throw new AccessDeniedException("Sie haben keinen Zugriff auf diese Apotheke.");
+        }
+
+        BestellungResponseDto response = bestellungsService.storniereBestellung(bestellId);
+        return ResponseEntity.ok(response);
     }
+
+
 }
