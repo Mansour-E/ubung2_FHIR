@@ -34,6 +34,17 @@ class BestellungsServiceTest {
         @Test
         @DisplayName("PASS: Gueltige Bestellung wird erstellt und BestellId generiert")
         void shouldCreateBestellungWithId() {
+
+
+            BestellungRequestDto request = new BestellungRequestDto("APO-JENA-001", "Carboplatin", 5, "mg", "DRINGEND");
+            BestellungResponseDto status = service.erstelleBestellung(request, "APO-JENA-001");
+
+            assertThat(status).isNotNull();
+            assertThat(status.bestellId()).isNotNull().startsWith("BST-");
+            assertThat(status.status()).isEqualTo("EINGEGANGEN");
+            assertThat(status.lieferzeitStunden()).isEqualTo(2);
+            assertThat(status.nachricht()).isNotEmpty();
+
             // TODO: Test implementieren
             // Gegeben: gueltiger Request mit apothekenId="APO-JENA-001",
             //          medikament="Carboplatin", menge=5, einheit="mg", prioritaet="DRINGEND"
@@ -42,21 +53,24 @@ class BestellungsServiceTest {
             //   result.status() == "EINGEGANGEN"
             //   result.lieferzeitStunden() == 2 (wegen DRINGEND)
             //   result.nachricht() ist nicht leer
-            fail("AUFGABE 5: Implementiere diesen Test!");
         }
 
         @Test
         @DisplayName("PASS: Prioritaet NORMAL → 8 Stunden Lieferzeit")
         void shouldReturnNormalDeliveryTime() {
-            // TODO: Test implementieren
-            fail("AUFGABE 5: Implementiere diesen Test!");
+            BestellungRequestDto request = new BestellungRequestDto("APO-JENA-001", "Carboplatin", 5, "mg", "NORMAL");
+            BestellungResponseDto status = service.erstelleBestellung(request, "APO-JENA-001");
+
+            assertThat(status.lieferzeitStunden()).isEqualTo(8);
         }
 
         @Test
         @DisplayName("PASS: Keine Prioritaet → 24 Stunden Lieferzeit")
         void shouldReturnDefaultDeliveryTime() {
-            // TODO: Test implementieren
-            fail("AUFGABE 5: Implementiere diesen Test!");
+            BestellungRequestDto request = new BestellungRequestDto("APO-JENA-001", "Carboplatin", 5, "mg", null);
+            BestellungResponseDto status = service.erstelleBestellung(request, "APO-JENA-001");
+
+            assertThat(status.lieferzeitStunden()).isEqualTo(24);
         }
     }
 
@@ -67,18 +81,23 @@ class BestellungsServiceTest {
         @Test
         @DisplayName("PASS: Existierende Bestellung wird korrekt zurueckgegeben")
         void shouldReturnExistingBestellung() {
-            // TODO: Test implementieren
-            // Erst erstellen, dann abfragen
-            fail("AUFGABE 5: Implementiere diesen Test!");
+
+            BestellungRequestDto request = new BestellungRequestDto("APO-JENA-001", "Carboplatin", 5, "mg", null);
+            BestellungResponseDto bestellung = service.erstelleBestellung(request, request.apothekenId());
+            BestellungStatusDto status = service.holeBestellungStatus(bestellung.bestellId());
+
+            assertThat(status).isNotNull();
+            assertThat(bestellung.bestellId()).isEqualTo(status.bestellId());
         }
 
         @Test
         @DisplayName("FAIL erwartet: Unbekannte BestellId → BestellungNichtGefundenException")
         void shouldThrowWhenBestellIdUnknown() {
+
+            assertThatThrownBy(() -> service.holeBestellungStatus("UBEKANNT-123")).isInstanceOf(BestellungNichtGefundenException.class);
             // TODO: Test implementieren
             // assertThatThrownBy(() -> service.holeBestellungStatus("UNBEKANNT-123"))
             //     .isInstanceOf(BestellungNichtGefundenException.class)
-            fail("AUFGABE 5: Implementiere diesen Test!");
         }
     }
 
@@ -89,17 +108,22 @@ class BestellungsServiceTest {
         @Test
         @DisplayName("PASS: EINGEGANGEN Bestellung kann storniert werden")
         void shouldCancelEingegangeneBestellung() {
-            // TODO: Test implementieren
-            // Erst erstellen, dann stornieren
-            // Erwarte: result.status() == "STORNIERT"
-            fail("AUFGABE 5: Implementiere diesen Test!");
+            BestellungRequestDto request = new BestellungRequestDto("APO-JENA-001", "Carboplatin", 5, "mg", null);
+            BestellungResponseDto bestellung = service.erstelleBestellung(request, request.apothekenId());
+
+            BestellungResponseDto storniert = service.storniereBestellung(bestellung.bestellId());
+
+            assertThat(storniert.status()).isEqualTo("STORNIERT");
         }
 
         @Test
         @DisplayName("FAIL erwartet: Nicht gefundene Bestellung → Exception")
         void shouldThrowWhenNotFound() {
-            // TODO: Test implementieren
-            fail("AUFGABE 5: Implementiere diesen Test!");
+
+
+
+            assertThatThrownBy(() -> service.storniereBestellung("asdf")).isInstanceOf(BestellungNichtGefundenException.class);
+
         }
     }
 
@@ -110,20 +134,37 @@ class BestellungsServiceTest {
         @Test
         @DisplayName("PASS: Leere Liste wenn keine Bestellungen vorhanden")
         void shouldReturnEmptyListWhenNoOrders() {
+
+            BestellungListeDto liste = service.holeAlleBestellungen("asdf");
+
+            assertThat(liste).isNotNull();
+            assertThat(liste.anzahl()).isEqualTo(0);
+            assertThat(liste.bestellungen()).isEmpty();
             // TODO: Test implementieren
             // Keine Bestellung erstellt
             // Erwarte: result.anzahl() == 0, result.bestellungen() ist leer
             // WICHTIG: Kein Exception — leere Liste ist korrekt!
-            fail("AUFGABE 5: Implementiere diesen Test!");
         }
 
         @Test
         @DisplayName("PASS: Nur Bestellungen der richtigen Apotheke werden zurueckgegeben")
         void shouldReturnOnlyCorrectApothekenBestellungen() {
-            // TODO: Test implementieren
-            // Zwei Bestellungen fuer APO-001 und eine fuer APO-002 erstellen
-            // Erwarte: holeAlleBestellungen("APO-001").anzahl() == 2
-            fail("AUFGABE 5: Implementiere diesen Test!");
+            BestellungRequestDto request1 = new BestellungRequestDto("APO-JENA-001", "Carboplatin", 5, "mg", null);
+            service.erstelleBestellung(request1, request1.apothekenId());
+
+            BestellungRequestDto request2 = new BestellungRequestDto("APO-JENA-001", "Ibu", 5, "mg", null);
+            service.erstelleBestellung(request2, request2.apothekenId());
+
+            BestellungRequestDto request3 = new BestellungRequestDto("APO-JENA-002", "Carboplatin", 5, "mg", null);
+            service.erstelleBestellung(request3, request3.apothekenId());
+
+            BestellungListeDto liste = service.holeAlleBestellungen("APO-JENA-001");
+
+            assertThat(liste.anzahl()).isEqualTo(2);
+            assertThat(liste.bestellungen()).allMatch(b -> b.apothekenId().equals("APO-JENA-001"));
         }
+
+
     }
+
 }
