@@ -109,25 +109,37 @@ public class AnonymisierungsService {
     private static final Logger log = LoggerFactory.getLogger(AnonymisierungsService.class);
 
     public AnonymisierterArztbriefDto anonymisiere(String arztbriefText) {
-        // TODO: Implementiere Schritt 1-5
-        throw new UnsupportedOperationException("AUFGABE 1: Implementiere anonymisiere()!");
+
+        String anonymisierungId = UUID.randomUUID().toString();
+
+        String anonymText = ersetzeDaten(arztbriefText);
+        anonymText = ersetzeNamen(anonymText);
+        anonymText = ersetzeIds(anonymText);
+
+        log.info("Arztbrief anonymisiert, anonymisierungsId={}", anonymisierungId);
+
+        return new AnonymisierterArztbriefDto(anonymText  , anonymisierungId);
+
     }
 
     // package-private fuer direkte Unit-Tests
     String ersetzeNamen(String text) {
-        // TODO: Patient [Name], Dr. [Name], Arzt: [Name] ersetzen
-        throw new UnsupportedOperationException("AUFGABE 1: Implementiere ersetzeNamen()!");
+        return text.replaceAll("Patient\\s+\\w+", "Patient [ANONYM]")
+                .replaceAll("Dr\\.\\s+\\w+", "Dr. [ANONYM]")
+                .replaceAll("Arzt:\\s+\\w+", "Arzt: [ANONYM]");
+
     }
 
     // package-private fuer direkte Unit-Tests
     String ersetzeDaten(String text) {
-        // TODO: Datumsformate DD.MM.YYYY ersetzen
-        throw new UnsupportedOperationException("AUFGABE 1: Implementiere ersetzeDaten()!");
+
+        return text.replaceAll("\\d{2}\\.\\d{2}\\.\\d{4}","[DATUM]");
     }
 
     // package-private fuer direkte Unit-Tests
     String ersetzeIds(String text) {
-        // TODO: PAT-XXXXX und Versicherungsnummern ersetzen
-        throw new UnsupportedOperationException("AUFGABE 1: Implementiere ersetzeIds()!");
+        
+        return text.replaceAll("PAT-\\d+","PAT-[ID]")
+                .replaceAll("[A-Z]{1}\\d{9}", "[VERSICHERUNGSNR]");
     }
 }
